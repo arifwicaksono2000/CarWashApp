@@ -1,3 +1,4 @@
+const datetime = require('date-and-time');
 const functions = require('firebase-functions');
 const express = require('express');
 const engines = require('consolidate');
@@ -16,6 +17,8 @@ app.set('view engine','hbs');
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 
+//app.use(express.static(__dirname + '/public'));
+
 async function getFirestore(){
     const writeResult = db.collection('AllCarwash').doc('Semarang').get().then(doc => {
     if (!doc.exists) { console.log('No such document!'); }
@@ -32,23 +35,32 @@ app.get('/',async (request,response) =>{
 exports.app = functions.https.onRequest(app);
 
 // Read
-app.get('/carwash/:location', (req, res) => {
+app.get('/carwash/:location/:idbranch/:idworker', (req, res) => {
     (async () => {
         try {
-            const document = db.collection(req.params.location);
+            //var tanggal = datetime.format(now, 'DD_MM_YYYY');
+            //const now = new datetime.Date();
+            // var tanggal = date.format(now, 'DD_MM_YYYY');
+            // var tanggal = d.getDate();
+            // console.log(now)
+            // console.log("TANGGALLLLLLLL-----------------------------------")
+            // console.log(tanggal)
+            var tanggal = "04_12_2020"
+            const document = db.collection('allcarwash').doc(req.params.location).collection('Branch').doc(req.params.idbranch).
+            collection('Worker').doc(req.params.idworker).collection(tanggal);
             let response = [];
             await document.get().then(querySnapshot => {
                 let docs = querySnapshot.docs;
                 for (let doc of docs) {
                     const selectedItem = {
-                        id: doc.id,
-                        item: doc.data().name,
-                        slot: {
-                            pertama: doc.data().slot.pertama,
-                            kedua: doc.data().slot.kedua,
-                            ketiga: doc.data().slot.ketiga,
-                            keempat: doc.data().slot.keempat,
-                        }
+                        caswashId: doc.data().caswashId,
+                        caswashName: doc.data().caswashName,
+                        customerName: doc.data().customerName,
+                        customerPhone: doc.data().customerPhone,
+                        slot: doc.data().slot,
+                        time: doc.data().time,
+                        workerId: doc.data().workerId,
+                        workerName: doc.data().workerName
                     };
                     response.push(selectedItem);
                 }
